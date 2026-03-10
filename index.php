@@ -1201,7 +1201,7 @@ if (gameOver) showGO(INIT_PL, false);
     <button type="submit" class="btn-start">🎲 START GAME</button>
   </form>
   <div style="text-align:center;margin-top:1rem">
-    <a href="?page=admin" style="color:#bbb;font-size:.82rem;text-decoration:none;transition:color .2s"
+    <a href="/index.php?page=admin" style="color:#bbb;font-size:.82rem;text-decoration:none;transition:color .2s"
        onmouseover="this.style.color='#6c63ff'" onmouseout="this.style.color='#bbb'">⚙️ Admin Panel</a>
   </div>
 </div>
