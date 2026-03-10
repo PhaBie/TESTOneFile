@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<!-- saved from url=(0031)http://localhost/test/index.php -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🐍 Snakes &amp; Ladders Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link href="./index_files/css2" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════════════════════
+   BASE RESET & VARIABLES
+════════════════════════════════════════════════════════════ */
+:root {
+  --primary:   #6c63ff;
+  --secondary: #43b89c;
+  --danger:    #e74c3c;
+  --bg:        linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+  --tile-lt:   #fef9f0;
+  --tile-dk:   #fde4b4;
+  --tile-lad:  #c8f7c5;
+  --tile-snk:  #ffdde1;
+  --gold:      #d4a855;
+  --r:         12px;
+  --sh:        0 4px 20px rgba(0,0,0,.12);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Nunito','Segoe UI',sans-serif; color: #2d2d2d; font-size: 15px; line-height: 1.5; }
+
+/* ════════════════════════════════════════════════════════════
+   SETUP SCREEN
+════════════════════════════════════════════════════════════ */
+.setup-body {
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+.setup-card {
+  background: #fff; border-radius: 24px; padding: 2.2rem;
+  max-width: 480px; width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,.22);
+}
+.logo { text-align: center; margin-bottom: 1.5rem; }
+.logo-emoji { font-size: 3rem; display: block; margin-bottom: .25rem; }
+.logo h1 { font-family: 'Fredoka One',cursive; font-size: 2.1rem; color: var(--primary); line-height: 1; }
+.logo p  { color: #888; font-size: .9rem; margin-top: .3rem; }
+.sec-lbl { font-weight: 800; color: #555; font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .6rem; }
+
+/* Board size picker */
+.size-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: .5rem; margin-bottom: 1.4rem; }
+.size-btn {
+  border: 2px solid #e0e0e0; border-radius: 12px; background: #fafafa;
+  padding: .65rem .3rem; cursor: pointer; text-align: center;
+  transition: all .2s; font-family: 'Nunito',sans-serif;
+}
+.size-btn:hover, .size-btn.active {
+  border-color: var(--primary); background: #f0eeff;
+  box-shadow: 0 0 0 3px rgba(108,99,255,.15);
+}
+.sb-emoji { font-size: 1.25rem; display: block; margin-bottom: .2rem; }
+.sb-label { font-family: 'Fredoka One',cursive; font-size: .95rem; color: var(--primary); display: block; line-height: 1; }
+.sb-tiles { font-size: .68rem; color: #888; font-weight: 700; display: block; margin-top: .1rem; }
+.sb-time  { font-size: .65rem; color: #aaa; display: block; margin-top: .1rem; }
+
+/* Player count */
+.p-count { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.4rem; }
+.cnt-btn {
+  width: 46px; height: 46px; border-radius: 50%;
+  border: 2px solid var(--primary); background: #fff; color: var(--primary);
+  font-weight: 800; font-size: 1.05rem; cursor: pointer;
+  transition: all .2s; font-family: 'Nunito',sans-serif;
+}
+.cnt-btn.active, .cnt-btn:hover { background: var(--primary); color: #fff; }
+
+/* Player name inputs */
+.p-inputs { display: flex; flex-direction: column; gap: .55rem; margin-bottom: 1.4rem; }
+.p-row { display: flex; align-items: center; gap: .6rem; }
+.p-row .em { font-size: 1.25rem; width: 30px; text-align: center; }
+.p-row input {
+  flex: 1; padding: .6rem .85rem; border: 2px solid #e0e0e0; border-radius: 10px;
+  font-family: 'Nunito',sans-serif; font-size: .95rem; transition: border-color .2s;
+}
+.p-row input:focus { outline: none; border-color: var(--primary); }
+
+.btn-start {
+  width: 100%; padding: .95rem;
+  background: linear-gradient(135deg,var(--primary),var(--secondary));
+  color: #fff; border: none; border-radius: 14px;
+  font-family: 'Fredoka One',cursive; font-size: 1.25rem;
+  cursor: pointer; letter-spacing: .05em;
+  box-shadow: 0 4px 15px rgba(108,99,255,.4);
+  transition: transform .2s, box-shadow .2s;
+}
+.btn-start:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,99,255,.5); }
+.err-msg { background: #fee; border: 1px solid #fcc; color: #c00; border-radius: 8px; padding: .65rem .9rem; margin-bottom: 1rem; font-size: .88rem; }
+
+/* ════════════════════════════════════════════════════════════
+   GAME SCREEN
+════════════════════════════════════════════════════════════ */
+.game-body { background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Header */
+.g-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .7rem 1.4rem;
+  background: rgba(0,0,0,.35); backdrop-filter: blur(8px);
+  color: #fff; font-weight: 700;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0; flex-wrap: wrap; gap: .3rem;
+}
+.g-title { font-family: 'Fredoka One',cursive; font-size: 1.35rem; letter-spacing: .03em; }
+.g-title small { font-size: .72rem; opacity: .65; font-family: 'Nunito',sans-serif; font-weight: 700; margin-left: .3rem; }
+.g-turn { font-size: .88rem; color: rgba(255,255,255,.85); }
+.g-btns { display: flex; gap: .4rem; }
+.hbtn {
+  background: rgba(255,255,255,.12); color: #fff;
+  border: 1px solid rgba(255,255,255,.25); border-radius: 8px;
+  padding: .38rem .85rem; font-size: .82rem; font-weight: 700;
+  cursor: pointer; transition: background .2s;
+  font-family: 'Nunito',sans-serif; text-decoration: none;
+}
+.hbtn:hover { background: rgba(255,255,255,.22); }
+.hbtn-end {
+  background: rgba(231,76,60,.18) !important;
+  border-color: rgba(231,76,60,.5) !important;
+  color: #ff8a80 !important;
+}
+.hbtn-end:hover { background: rgba(231,76,60,.32) !important; }
+
+/* Layout */
+.g-layout {
+  display: flex; flex: 1; gap: 1rem; padding: 1rem;
+  align-items: flex-start; overflow: hidden;
+}
+
+/* Board */
+.board-wrap { flex: 1; min-width: 0; display: flex; justify-content: center; align-items: flex-start; }
+.board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr); /* overridden by inline style per game */
+  width: min(calc(100vw - 320px), calc(100vh - 80px), 580px);
+  aspect-ratio: 1;
+  border: 4px solid var(--gold);
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+}
+.tile {
+  position: relative; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: var(--tile-lt); border: 1px solid rgba(0,0,0,.07);
+  padding: 2px; aspect-ratio: 1; overflow: hidden; transition: transform .15s;
+}
+.tile:hover { z-index: 2; transform: scale(1.06); }
+.td  { background: var(--tile-dk); }
+.tl  { background: var(--tile-lad) !important; }
+.ts  { background: var(--tile-snk) !important; }
+.tile.hl { outline: 3px solid var(--primary); z-index: 3; transform: scale(1.1); box-shadow: 0 0 12px var(--primary); }
+.tnum { font-size: clamp(7px,1.1vw,11px); font-weight: 800; color: rgba(0,0,0,.4); line-height: 1; position: absolute; top: 2px; left: 3px; }
+.tico { font-size: clamp(10px,1.8vw,18px); line-height: 1; }
+.ttgt { font-size: clamp(6px,.9vw,9px); color: rgba(0,0,0,.45); font-weight: 700; }
+.tokwrap { display: flex; flex-wrap: wrap; gap: 1px; justify-content: center; position: absolute; bottom: 1px; right: 1px; }
+.tok {
+  font-size: clamp(8px,1.3vw,13px); border-radius: 50%;
+  width: clamp(12px,2vw,20px); height: clamp(12px,2vw,20px);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+}
+
+/* Side panel */
+.side {
+  width: 280px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: .8rem;
+  position: sticky; top: 1rem;
+  max-height: calc(100vh - 80px); overflow-y: auto;
+}
+.pcard { background: rgba(255,255,255,.95); border-radius: var(--r); padding: 1rem; box-shadow: var(--sh); }
+
+/* Scoreboard */
+.sb h3 { font-family: 'Fredoka One',cursive; font-size: 1.1rem; margin-bottom: .7rem; color: var(--primary); }
+.srow { display: flex; align-items: center; gap: .4rem; padding: .4rem .5rem; border-radius: 8px; margin-bottom: .3rem; font-size: .88rem; transition: background .2s; }
+.srow.cur { background: rgba(108,99,255,.1); font-weight: 700; }
+.sdot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.sname { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spts { font-weight: 800; color: var(--primary); font-size: .95rem; }
+.sposn { font-size: .72rem; color: #999; white-space: nowrap; }
+
+/* Dice */
+.dice { text-align: center; }
+.dface { font-size: 3.5rem; line-height: 1; margin-bottom: .3rem; display: inline-block; }
+.dres  { font-size: .9rem; color: #777; margin-bottom: .8rem; font-weight: 600; }
+.btn-roll {
+  display: block; width: 100%; padding: .9rem;
+  background: linear-gradient(135deg,var(--primary),var(--secondary));
+  color: #fff; border: none; border-radius: 12px;
+  font-family: 'Fredoka One',cursive; font-size: 1.2rem; cursor: pointer;
+  letter-spacing: .04em; box-shadow: 0 4px 15px rgba(108,99,255,.4);
+  transition: transform .15s, box-shadow .15s, opacity .15s;
+}
+.btn-roll:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(108,99,255,.5); }
+.btn-roll:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.curinfo { margin-top: .8rem; padding: .6rem .8rem; background: #f8f8ff; border-radius: 8px; font-size: .82rem; text-align: left; color: #555; }
+
+/* Legend */
+.leg h4 { font-size: .82rem; font-weight: 800; color: #888; margin-bottom: .4rem; text-transform: uppercase; letter-spacing: .06em; }
+.leg-item { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: #555; padding: .2rem 0; }
+
+/* ════════════════════════════════════════════════════════════
+   MODALS
+════════════════════════════════════════════════════════════ */
+.moverlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.65);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(4px);
+}
+.mcard {
+  background: #fff; border-radius: 20px; padding: 2rem;
+  max-width: 480px; width: 94%;
+  box-shadow: 0 24px 80px rgba(0,0,0,.4);
+  transform: scale(.85); opacity: 0;
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s;
+}
+.mcard.min { transform: scale(1); opacity: 1; }
+.moverlay .mcard { transform: scale(1); opacity: 1; } /* non-animated modals */
+
+.mcat {
+  display: inline-block; color: #fff; padding: .3rem .8rem; border-radius: 20px;
+  font-weight: 800; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .8rem;
+}
+.mq { font-size: 1.1rem; font-weight: 700; color: #333; margin-bottom: 1.2rem; line-height: 1.45; }
+.mchoices { display: flex; flex-direction: column; gap: .5rem; }
+.cbtn {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .65rem 1rem; border: 2px solid #e8e8e8; border-radius: 10px;
+  background: #fafafa; cursor: pointer;
+  font-family: 'Nunito',sans-serif; font-size: .95rem; font-weight: 600;
+  text-align: left; transition: all .15s; color: #333;
+}
+.cbtn:hover:not(:disabled) { border-color: var(--primary); background: #f0eeff; }
+.cbtn.ok { border-color: #2ecc71; background: #e8faf0; color: #1a7a3a; }
+.cbtn.ng { border-color: var(--danger); background: #fff0f0; color: var(--danger); }
+.cbtn:disabled { cursor: not-allowed; }
+.cltr {
+  min-width: 28px; height: 28px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; font-weight: 800; flex-shrink: 0;
+}
+.mfb { margin-top: 1rem; padding: .7rem 1rem; border-radius: 10px; font-weight: 700; font-size: .95rem; min-height: 44px; }
+.fb-ok { background: #e8faf0; color: #1a7a3a; }
+.fb-ng { background: #fff0f0; color: var(--danger); }
+
+/* Move modal */
+.mmove { text-align: center; }
+.mve { font-size: 4rem; margin-bottom: .5rem; }
+.mvt { font-size: 1rem; color: #444; line-height: 1.6; margin-bottom: 1.2rem; }
+.btn-cont {
+  background: linear-gradient(135deg,var(--primary),var(--secondary));
+  color: #fff; border: none; border-radius: 10px; padding: .7rem 2rem;
+  font-family: 'Fredoka One',cursive; font-size: 1.1rem; cursor: pointer;
+}
+
+/* Game Over modal */
+.mgo { text-align: center; }
+.mgo h2 { font-family: 'Fredoka One',cursive; font-size: 2rem; color: var(--primary); margin: .3rem 0 1rem; }
+.fsrow { display: flex; align-items: center; gap: .6rem; padding: .5rem .7rem; border-radius: 8px; margin-bottom: .35rem; background: #f8f8f8; font-weight: 700; }
+.fpts  { margin-left: auto; color: var(--primary); font-weight: 800; }
+.btn-again {
+  display: inline-block; margin-top: 1.2rem;
+  background: linear-gradient(135deg,var(--primary),var(--secondary));
+  color: #fff; padding: .8rem 2rem; border-radius: 12px;
+  font-family: 'Fredoka One',cursive; font-size: 1.2rem;
+  text-decoration: none; box-shadow: 0 4px 15px rgba(108,99,255,.4);
+}
+
+/* ════════════════════════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════════════════════════ */
+@media (min-width: 1200px) {
+  .board { width: min(calc(100vw - 340px), calc(100vh - 80px), 660px); }
+  .side  { width: 300px; }
+}
+@media (max-width: 1024px) and (min-width: 769px) {
+  .g-layout { flex-direction: row; align-items: flex-start; padding: .8rem; gap: .8rem; }
+  .board-wrap { flex: 1; min-width: 0; }
+  .board { width: min(calc(100vw - 260px), calc(100vh - 80px), 480px); }
+  .side  { width: 230px; flex-shrink: 0; }
+  .g-title { font-size: 1.15rem; }
+}
+@media (max-width: 768px) {
+  .g-hdr { padding: .5rem .75rem; flex-wrap: wrap; gap: .3rem; }
+  .g-title { font-size: 1rem; order: 1; }
+  .g-turn  { font-size: .75rem; order: 3; width: 100%; text-align: center; color: rgba(255,255,255,.75); padding: .2rem 0; border-top: 1px solid rgba(255,255,255,.08); }
+  .g-btns  { order: 2; }
+  .hbtn { padding: .3rem .6rem; font-size: .75rem; }
+  .g-layout { flex-direction: column; padding: .5rem; gap: .6rem; align-items: center; overflow: visible; }
+  .board-wrap { width: 100%; }
+  .board { width: 96vw; max-width: 420px; margin: 0 auto; }
+  .tnum { font-size: 6px; } .tico { font-size: 10px; } .ttgt { display: none; }
+  .tok  { font-size: 9px; width: 14px; height: 14px; }
+  .side { width: 100%; position: static; max-height: none; }
+  .dface { font-size: 2.8rem; } .btn-roll { font-size: 1.05rem; padding: .8rem; }
+  .mcard { padding: 1.3rem; border-radius: 16px; } .mq { font-size: .95rem; }
+  .mgo h2 { font-size: 1.6rem; }
+  .size-grid { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 400px) {
+  .board { width: 98vw; }
+  .mcard { padding: 1rem; margin: .5rem; }
+  .cbtn  { font-size: .82rem; padding: .5rem .7rem; }
+}
+</style>
+</head>
+<body class="setup-body">
+
+<!-- ════════════════════════════════════════════════════════
+     🎯 SETUP SCREEN
+════════════════════════════════════════════════════════ -->
+<div class="setup-card">
+  <div class="logo">
+    <span class="logo-emoji">🐍🎲🪜</span>
+    <h1>Snakes &amp; Ladders</h1>
+    <p>English Learning Quiz Game</p>
+  </div>
+
+  
+  <form method="POST">
+
+    <div class="sec-lbl">🗺️ Board Size</div>
+    <div class="size-grid">
+            <button type="button" class="size-btn " id="sb-25" onclick="setSz(25)">
+        <span class="sb-emoji">⚡</span>
+        <span class="sb-label">5×5</span>
+        <span class="sb-tiles">25 tiles</span>
+        <span class="sb-time">~15 min</span>
+      </button>
+            <button type="button" class="size-btn active" id="sb-36" onclick="setSz(36)">
+        <span class="sb-emoji">🎯</span>
+        <span class="sb-label">6×6</span>
+        <span class="sb-tiles">36 tiles</span>
+        <span class="sb-time">~20 min</span>
+      </button>
+            <button type="button" class="size-btn " id="sb-64" onclick="setSz(64)">
+        <span class="sb-emoji">🎲</span>
+        <span class="sb-label">8×8</span>
+        <span class="sb-tiles">64 tiles</span>
+        <span class="sb-time">~30 min</span>
+      </button>
+            <button type="button" class="size-btn " id="sb-100" onclick="setSz(100)">
+        <span class="sb-emoji">🏆</span>
+        <span class="sb-label">10×10</span>
+        <span class="sb-tiles">100 tiles</span>
+        <span class="sb-time">~45 min</span>
+      </button>
+          </div>
+    <input type="hidden" name="board_size" id="bsInput" value="36">
+
+    <div class="sec-lbl">👥 Number of Players</div>
+    <div class="p-count">
+            <button type="button" class="cnt-btn active" onclick="setP(2)">2</button>
+            <button type="button" class="cnt-btn " onclick="setP(3)">3</button>
+            <button type="button" class="cnt-btn " onclick="setP(4)">4</button>
+            <button type="button" class="cnt-btn " onclick="setP(5)">5</button>
+            <button type="button" class="cnt-btn " onclick="setP(6)">6</button>
+          </div>
+    <input type="hidden" name="num_players" id="npInput" value="2">
+
+    <div class="sec-lbl">✏️ Player Names</div>
+    <div class="p-inputs">
+            <div class="p-row" id="pr0">
+        <span class="em">🔴</span>
+        <input type="text" name="player_names[]" placeholder="Player 1" maxlength="20">
+      </div>
+            <div class="p-row" id="pr1">
+        <span class="em">🔵</span>
+        <input type="text" name="player_names[]" placeholder="Player 2" maxlength="20">
+      </div>
+            <div class="p-row" id="pr2" style="display:none">
+        <span class="em">🟢</span>
+        <input type="text" name="player_names[]" placeholder="Player 3" maxlength="20">
+      </div>
+            <div class="p-row" id="pr3" style="display:none">
+        <span class="em">🟡</span>
+        <input type="text" name="player_names[]" placeholder="Player 4" maxlength="20">
+      </div>
+            <div class="p-row" id="pr4" style="display:none">
+        <span class="em">🟣</span>
+        <input type="text" name="player_names[]" placeholder="Player 5" maxlength="20">
+      </div>
+            <div class="p-row" id="pr5" style="display:none">
+        <span class="em">🩵</span>
+        <input type="text" name="player_names[]" placeholder="Player 6" maxlength="20">
+      </div>
+          </div>
+
+    <button type="submit" class="btn-start">🎲 START GAME</button>
+  </form>
+  <div style="text-align:center;margin-top:1rem">
+    <a href="http://localhost/test/index.php?page=admin" style="color:#bbb;font-size:.82rem;text-decoration:none;transition:color .2s" onmouseover="this.style.color=&#39;#6c63ff&#39;" onmouseout="this.style.color=&#39;#bbb&#39;">⚙️ Admin Panel</a>
+  </div>
+</div>
+
+<script>
+function setSz(n) {
+  document.getElementById('bsInput').value = n;
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sb-' + n).classList.add('active');
+}
+function setP(n) {
+  document.getElementById('npInput').value = n;
+  document.querySelectorAll('.cnt-btn').forEach(b => b.classList.toggle('active', +b.textContent === n));
+  for (let i = 0; i < 6; i++)
+    document.getElementById('pr' + i).style.display = i < n ? '' : 'none';
+}
+</script>
+
+
+
+</body></html>
